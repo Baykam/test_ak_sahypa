@@ -9,20 +9,16 @@ mixin _Functions on State<NewsScreen> {
 
   void init() {
     context.read<NewsBloc>().add(Started());
-    // Ekran açılırken kayıtlı haberleri de çekiyoruz
     context.read<SaveNewsBloc>().add(GetAllListEvent());
   }
 
   void listener(BuildContext ctx, NewsState state) {
-    // İhtiyacına göre buraya dinleyici mantıkları ekleyebilirsin
   }
 
-  /// UI katmanından gelen objectId'nin kayıtlı olup olmadığını denetleyen fonksiyon
   bool isNewsSaved({required String? objectId, required SaveNewsState saveState}) {
     if (objectId == null || objectId.isEmpty) return false;
     if (saveState is! GetAllState) return false;
 
-    // Set kullanarak O(1) zamanda hızlıca arama yapıyoruz
     final Set<String> savedIds = saveState.listSave
         .map((e) => e.objectId ?? '')
         .where((id) => id.isNotEmpty)
@@ -31,19 +27,18 @@ mixin _Functions on State<NewsScreen> {
     return savedIds.contains(objectId);
   }
 
-  /// Kaydet/Sil butonuna tıklandığında çalışacak merkezi fonksiyon
   void handleSaveOrDelete({required NewsModel model, required bool currentSavedState}) {
     final saveNewsBloc = context.read<SaveNewsBloc>();
 
+
+    print("inside function");
     if (currentSavedState) {
-      // Eğer halihazırda kayıtlıysa (true ise) SİLME event'i tetikle
+      print("delete activate");
       saveNewsBloc.add(DeleteNewsSubmitted(news: model));
     } else {
-      // Kayıtlı değilse (false ise) KAYDETME event'i tetikle
+      print("saved activate");
       saveNewsBloc.add(SaveNewsSubmitted(news: model));
     }
 
-    // İşlem bittikten hemen sonra lokal listeyi yenilemesi için GetAllListEvent tetikliyoruz
-    saveNewsBloc.add(GetAllListEvent());
   }
 }

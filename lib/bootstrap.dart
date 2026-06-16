@@ -54,6 +54,6 @@ final class ApplicationInitialize {
         [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
 
-    // await DbManager.i.init();
+    await DbManager.i.init();
   }
 }

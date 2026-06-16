@@ -15,26 +15,33 @@ class SaveNewsBloc extends Bloc<SaveNewsEvent, SaveNewsState> {
       : _dbRepository = HiveRepository(cacheManager: CacheManagerHive(boxPath: "saved_news_box")),
         super(SaveNewsInitial()) {
 
+    // HABER KAYDETME TETİKLEYİCİSİ
     on<SaveNewsSubmitted>((event, emit) async {
-      emit(SaveNewsLoading());
+      // DÖNGÜYÜ ENGELLEMEK İÇİN: emit(SaveNewsLoading()) satırını KALDIRDIK.
+      // Araya loading state sokmuyoruz ki arayüzdeki mevcut liste kaybolmasın.
       try {
         await _dbRepository.set(
           key: event.news.objectId,
           data: event.news,
         );
 
-        emit(SaveNewsSuccess(savedNews: event.news));
+        // Veriyi kaydettikten sonra doğrudan güncel listeyi DB'den çekip GetAllState emiti yapıyoruz
+        final res = _dbRepository.getAll();
+        emit(GetAllState(listSave: res));
       } catch (e) {
         emit(SaveNewsFailure(errorMessage: 'Haber kaydedilemedi: ${e.toString()}'));
       }
     });
 
+    // HABER SİLME TETİKLEYİCİSİ
     on<DeleteNewsSubmitted>((event, emit) async {
-      emit(SaveNewsLoading());
+      // DÖNGÜYÜ ENGELLEMEK İÇİN: emit(SaveNewsLoading()) satırını KALDIRDIK.
       try {
         await _dbRepository.delete(key: event.news.objectId);
 
-        emit(SaveNewsInitial());
+        // Veriyi sildikten sonra doğrudan güncel listeyi DB'den çekip GetAllState emiti yapıyoruz
+        final res = _dbRepository.getAll();
+        emit(GetAllState(listSave: res));
       } catch (e) {
         emit(SaveNewsFailure(errorMessage: 'Haber silinemedi: ${e.toString()}'));
       }
@@ -44,11 +51,12 @@ class SaveNewsBloc extends Bloc<SaveNewsEvent, SaveNewsState> {
       emit(SaveNewsInitial());
     });
 
+    // TÜM LİSTEYİ GETİRME TETİKLEYİCİSİ
     on<GetAllListEvent>((event, emit) {
-      try{
+      try {
         final res = _dbRepository.getAll();
         emit(GetAllState(listSave: res));
-      }catch(e){
+      } catch (e) {
         emit(SaveNewsFailure(errorMessage: 'data alamidim: ${e.toString()}'));
       }
     });
